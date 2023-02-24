@@ -41,7 +41,7 @@ void Sub::Log_Write_Control_Tuning()
         desired_alt         : pos_control.get_pos_target_z_cm() / 100.0f,
         inav_alt            : inertial_nav.get_position_z_up_cm() * 0.01f,
         baro_alt            : barometer.get_altitude(),
-        desired_rangefinder_alt   : (int16_t)target_rangefinder_alt,
+        desired_rangefinder_alt   : (int16_t)surface_tracking.get_target_rangefinder_cm(),
         rangefinder_alt           : rangefinder_state.alt_cm,
         terr_alt            : terr_alt,
         target_climb_rate   : (int16_t)pos_control.get_vel_target_z_cms(),

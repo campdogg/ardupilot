@@ -30,7 +30,11 @@ void Sub::read_rangefinder()
 #if RANGEFINDER_ENABLED == ENABLED
     rangefinder.update();
 
+    bool was_healthy = rangefinder_state.alt_healthy;
     rangefinder_state.alt_healthy = ((rangefinder.status_orient(ROTATION_PITCH_270) == RangeFinder::Status::Good) && (rangefinder.range_valid_count_orient(ROTATION_PITCH_270) >= RANGEFINDER_HEALTH_MAX));
+    if (was_healthy != rangefinder_state.alt_healthy) {
+        printf("rangefinder health change, status: %d, valid count %d\n", int(rangefinder.status_orient(ROTATION_PITCH_270)), rangefinder.range_valid_count_orient(ROTATION_PITCH_270));
+    }
 
     int16_t temp_alt = rangefinder.distance_cm_orient(ROTATION_PITCH_270);
 

@@ -22,6 +22,9 @@ bool Sub::althold_init()
 
     last_pilot_heading = ahrs.yaw_sensor;
 
+    // initialize surface tracking if available
+    surface_tracking.start_tracking();
+
     return true;
 }
 
@@ -103,6 +106,9 @@ void Sub::althold_run()
 void Sub::control_depth() {
     float target_climb_rate_cm_s = get_pilot_desired_climb_rate(channel_throttle->get_control_in());
     target_climb_rate_cm_s = constrain_float(target_climb_rate_cm_s, -get_pilot_speed_dn(), g.pilot_speed_up);
+
+    // update the vertical offset based on the rangefinder measurement
+    sub.surface_tracking.update_surface_offset();
 
     // desired_climb_rate returns 0 when within the deadzone.
     //we allow full control to the pilot, but as soon as there's no input, we handle being at surface/bottom
