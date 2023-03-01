@@ -138,38 +138,32 @@ private:
 
     struct {
         bool enabled:1;
-        bool alt_healthy:1;             // true if we can trust the altitude from the rangefinder
-        int16_t alt_cm;                 // tilt compensated altitude (in cm) from rangefinder
+        bool alt_healthy:1; // true if we can trust the altitude from the rangefinder
+        int16_t alt_cm;     // tilt compensated altitude (in cm) from rangefinder
         uint32_t last_healthy_ms;
-        int8_t glitch_count;            // non-zero number indicates rangefinder is glitching
-        uint32_t glitch_cleared_ms;     // system time glitch cleared
         LowPassFilterFloat alt_cm_filt; // altitude filter
-    } rangefinder_state = { false, false, 0, 0, 0, 0 };
+    } rangefinder_state = { false, false, 0, 0 };
 
     class SurfaceTracking {
     public:
+        // pilot can enable or disable tracking
+        void enable();
+        void disable();
+
+        // mode controller can reset target_rangefinder_cm
+        void reset();
+
         // update_surface_offset - vertical offset of the position controller tracks the rangefinder
         void update_surface_offset();
 
-        // get/set target altitude (in cm) above ground
-        bool get_target_alt_cm(float &target_alt_cm) const;
-        void set_target_alt_cm(float target_alt_cm);
-
         // get target rangefinder
         float get_target_rangefinder_cm() const { return target_rangefinder_cm; }
-        void invalidate_for_logging() { valid_for_logging = false; }
-
-        void start_tracking();
-        void stop_tracking() { tracking = false; }
-        bool ok() const { return tracking; }
 
     private:
-        bool tracking;
+        bool enabled;                       // true if pilot enabled surface tracking
+        bool reset_target;                  // true if target should be reset
         float target_rangefinder_cm;        // target distance to seafloor
         uint32_t last_update_ms;            // system time of last update to target_alt_cm
-        uint32_t last_glitch_cleared_ms;    // system time of last handle glitch recovery
-        bool valid_for_logging;             // true if we have a desired target altitude
-        bool reset_target;                  // true if target should be reset because of change in surface being tracked
     } surface_tracking;
 
 #if AP_RPM_ENABLED
