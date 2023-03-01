@@ -1,14 +1,8 @@
 #include "Sub.h"
 
-void Sub::SurfaceTracking::enable()
+void Sub::SurfaceTracking::enable(bool _enabled)
 {
-    enabled = true;
-    reset_target = true;
-}
-
-void Sub::SurfaceTracking::disable()
-{
-    enabled = false;
+    enabled = _enabled;
     reset_target = true;
 }
 

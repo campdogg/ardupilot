@@ -23,8 +23,7 @@ bool Sub::althold_init()
     last_pilot_heading = ahrs.yaw_sensor;
 
     // enable surface tracking
-    // TODO add a SURFTRAK_MODE param
-    surface_tracking.enable();
+    surface_tracking.enable(g.surftrak_mode);
 
     return true;
 }

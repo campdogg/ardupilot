@@ -147,8 +147,7 @@ private:
     class SurfaceTracking {
     public:
         // pilot can enable or disable tracking
-        void enable();
-        void disable();
+        void enable(bool _enabled);
 
         // mode controller can reset target_rangefinder_cm
         void reset();
