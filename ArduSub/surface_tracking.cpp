@@ -4,6 +4,12 @@
 
 void Sub::SurfaceTracking::enable(bool _enabled)
 {
+    // don't enable surface tracking if rangefinder is missing or unhealthy
+    if (_enabled && !sub.rangefinder_alt_ok()) {
+        sub.gcs().send_text(MAV_SEVERITY_WARNING, "rangefinder is not OK, surface tracking is disabled");
+        return;
+    }
+
     enabled = _enabled;
     reset_target = true;
 }
@@ -27,7 +33,7 @@ void Sub::SurfaceTracking::update_surface_offset()
                 sub.pos_control.set_pos_offset_z_cm(0);
                 sub.pos_control.set_pos_offset_target_z_cm(0);
                 reset_target = false;
-                printf("target_rangefinder [re]set to %g\n", target_rangefinder_cm);
+                sub.gcs().send_text(MAV_SEVERITY_INFO, "rangefinder target is %g m", target_rangefinder_cm * 0.01f);
             }
 
             // update position controller target offset
@@ -35,6 +41,12 @@ void Sub::SurfaceTracking::update_surface_offset()
                                                  sub.rangefinder_state.alt_cm_filt.get();
             sub.pos_control.set_pos_offset_target_z_cm(pos_offset_target_z_cm);
             last_update_ms = now_ms;
+        } else {
+            // rangefinder is unhealthy
+            if (!reset_target) {
+                sub.gcs().send_text(MAV_SEVERITY_WARNING, "rangefinder is not OK, surface tracking is paused");
+                reset_target = true;
+            }
         }
     } else {
         sub.pos_control.set_pos_offset_z_cm(0);
