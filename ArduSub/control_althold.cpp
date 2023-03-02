@@ -22,8 +22,10 @@ bool Sub::althold_init()
 
     last_pilot_heading = ahrs.yaw_sensor;
 
+#if RANGEFINDER_ENABLED == ENABLED
     // enable surface tracking
     surface_tracking.enable(g.surftrak_mode);
+#endif
 
     return true;
 }
@@ -106,7 +108,9 @@ void Sub::althold_run()
 void Sub::control_depth() {
     float target_climb_rate_cm_s = get_pilot_desired_climb_rate(channel_throttle->get_control_in());
     target_climb_rate_cm_s = constrain_float(target_climb_rate_cm_s, -get_pilot_speed_dn(), g.pilot_speed_up);
+#if RANGEFINDER_ENABLED == ENABLED
     bool track_seafloor = false;
+#endif
 
     // desired_climb_rate returns 0 when within the deadzone.
     //we allow full control to the pilot, but as soon as there's no input, we handle being at surface/bottom
@@ -115,11 +119,14 @@ void Sub::control_depth() {
             pos_control.set_pos_target_z_cm(MIN(pos_control.get_pos_target_z_cm(), g.surface_depth - 5.0f)); // set target to 5 cm below surface level
         } else if (ap.at_bottom) {
             pos_control.set_pos_target_z_cm(MAX(inertial_nav.get_position_z_up_cm() + 10.0f, pos_control.get_pos_target_z_cm())); // set target to 10 cm above bottom
+#if RANGEFINDER_ENABLED == ENABLED
         } else {
             track_seafloor = true;
+#endif
         }
     }
 
+#if RANGEFINDER_ENABLED == ENABLED
     if (track_seafloor) {
         // update the vertical offset based on the rangefinder measurement
         surface_tracking.update_surface_offset();
@@ -127,6 +134,7 @@ void Sub::control_depth() {
         // stop tracking
         surface_tracking.reset();
     }
+#endif
 
     pos_control.set_pos_target_z_from_climb_rate_cm(target_climb_rate_cm_s);
     pos_control.update_z_controller();

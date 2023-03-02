@@ -86,7 +86,6 @@ const AP_Param::Info Sub::var_info[] = {
     // @Values: 0:Disabled,1:Enabled
     // @User: Standard
     GSCALAR(surftrak_mode, "SURFTRAK_MODE", SURFTRAK_MODE_DEFAULT),
-
 #endif
 
     // @Param: FS_GCS_ENABLE

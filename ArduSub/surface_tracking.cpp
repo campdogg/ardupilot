@@ -1,5 +1,7 @@
 #include "Sub.h"
 
+#if RANGEFINDER_ENABLED == ENABLED
+
 void Sub::SurfaceTracking::enable(bool _enabled)
 {
     enabled = _enabled;
@@ -13,7 +15,6 @@ void Sub::SurfaceTracking::reset()
 
 void Sub::SurfaceTracking::update_surface_offset()
 {
-#if RANGEFINDER_ENABLED == ENABLED
     if (enabled) {
         // check for first reading or timeout
         const uint32_t now_ms = AP_HAL::millis();
@@ -39,8 +40,6 @@ void Sub::SurfaceTracking::update_surface_offset()
         sub.pos_control.set_pos_offset_z_cm(0);
         sub.pos_control.set_pos_offset_target_z_cm(0);
     }
-#else
-    sub.pos_control.set_pos_offset_z_cm(0);
-    sub.pos_control.set_pos_offset_target_z_cm(0);
-#endif
 }
+
+#endif
