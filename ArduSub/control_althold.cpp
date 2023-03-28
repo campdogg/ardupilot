@@ -27,6 +27,11 @@ bool Sub::althold_init()
     last_pilot_heading = ahrs.yaw_sensor;
     last_input_ms = AP_HAL::millis();
 
+#if RANGEFINDER_ENABLED == ENABLED
+    // enable surface tracking
+    surface_tracking.enable(g.surftrak_mode);
+#endif
+
     return true;
 }
 
@@ -106,7 +111,11 @@ void Sub::control_depth() {
     Vector3f earth_frame_rc_inputs = ahrs.get_rotation_body_to_ned() * Vector3f(-channel_forward->norm_input(), -channel_lateral->norm_input(), (2.0f*(-0.5f+channel_throttle->norm_input())));
     float target_climb_rate_cm_s = get_pilot_desired_climb_rate(500 + g.pilot_speed_up * earth_frame_rc_inputs.z);
     target_climb_rate_cm_s = constrain_float(target_climb_rate_cm_s, -get_pilot_speed_dn(), g.pilot_speed_up);
-    pos_control.set_pos_target_z_from_climb_rate_cm(target_climb_rate_cm_s);
+
+#if RANGEFINDER_ENABLED == ENABLED
+    bool track_seafloor = false;
+#endif
+
     // desired_climb_rate returns 0 when within the deadzone.
     //we allow full control to the pilot, but as soon as there's no input, we handle being at surface/bottom
     if (fabsf(target_climb_rate_cm_s) < 0.05f)  {
@@ -114,9 +123,27 @@ void Sub::control_depth() {
             pos_control.set_pos_target_z_cm(MIN(pos_control.get_pos_target_z_cm(), g.surface_depth - 5.0f)); // set target to 5 cm below surface level
         } else if (ap.at_bottom) {
             pos_control.set_pos_target_z_cm(MAX(inertial_nav.get_altitude() + 10.0f, pos_control.get_pos_target_z_cm())); // set target to 10 cm above bottom
+#if RANGEFINDER_ENABLED == ENABLED
+        } else {
+            track_seafloor = true;
+#endif
         }
     }
+
+#if RANGEFINDER_ENABLED == ENABLED
+    if (track_seafloor) {
+        // update the vertical offset based on the rangefinder measurement
+        // must be called before calling set_pos_target_z_from_climb_rate_cm()
+        surface_tracking.update_surface_offset();
+    } else {
+        // stop tracking
+        surface_tracking.reset();
+    }
+#endif
+
+    pos_control.set_pos_target_z_from_climb_rate_cm(target_climb_rate_cm_s);
     pos_control.update_z_controller();
+
     // Read the output of the z controller and rotate it so it always points up
     Vector3f throttle_vehicle_frame = ahrs.get_rotation_body_to_ned().transposed() * Vector3f(0, 0, motors.get_throttle_in_bidirectional());
     //TODO: scale throttle with the ammount of thrusters in the given direction

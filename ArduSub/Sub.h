@@ -160,6 +160,29 @@ private:
         LowPassFilterFloat alt_cm_filt; // altitude filter
     } rangefinder_state = { false, false, 0, 0 };
 
+#if RANGEFINDER_ENABLED == ENABLED
+    class SurfaceTracking {
+    public:
+        // pilot can enable or disable tracking
+        void enable(bool _enabled);
+
+        // mode controller can reset target_rangefinder_cm
+        void reset();
+
+        // update_surface_offset - vertical offset of the position controller tracks the rangefinder
+        void update_surface_offset();
+
+        // get target rangefinder
+        float get_target_rangefinder_cm() const { return target_rangefinder_cm; }
+
+    private:
+        bool enabled;                       // true if pilot enabled surface tracking
+        bool reset_target;                  // true if target should be reset
+        float target_rangefinder_cm;        // target distance to seafloor
+        uint32_t last_update_ms;            // system time of last update to target_alt_cm
+    } surface_tracking;
+#endif
+
 #if RPM_ENABLED == ENABLED
     AP_RPM rpm_sensor;
 #endif

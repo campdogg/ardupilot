@@ -213,6 +213,7 @@ public:
         k_param_cam_slew_limit = 237, // deprecated
         k_param_lights_steps,
         k_param_pilot_speed_dn,
+        k_param_surftrak_mode,
 
         k_param_vehicle = 257, // vehicle common block of parameters
     };
@@ -228,6 +229,7 @@ public:
 
 #if RANGEFINDER_ENABLED == ENABLED
     AP_Float        rangefinder_gain;
+    AP_Int8         surftrak_mode;
 #endif
 
     AP_Int8         failsafe_leak;              // leak detection failsafe behavior
