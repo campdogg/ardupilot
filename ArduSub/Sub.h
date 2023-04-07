@@ -479,6 +479,8 @@ private:
     void get_pilot_desired_angle_rates(int16_t roll_in, int16_t pitch_in, int16_t yaw_in, float &roll_out, float &pitch_out, float &yaw_out);
     bool althold_init(void);
     void althold_run();
+    bool rnghold_init();
+    void rnghold_run();
 
     // Handles attitude control for stabilize and althold modes
     void handle_attitude();
@@ -530,6 +532,7 @@ private:
     bool stabilize_init(void);
     void stabilize_run();
     void control_depth();
+    void control_range();
     bool manual_init(void);
     void manual_run();
     void failsafe_sensors_check(void);

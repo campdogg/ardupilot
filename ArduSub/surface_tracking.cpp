@@ -6,7 +6,7 @@ void Sub::SurfaceTracking::enable(bool _enabled)
 {
     // don't enable surface tracking if rangefinder is missing or unhealthy
     if (_enabled && !sub.rangefinder_alt_ok()) {
-        sub.gcs().send_text(MAV_SEVERITY_WARNING, "rangefinder is not OK, surface tracking is disabled");
+        sub.gcs().send_text(MAV_SEVERITY_WARNING, "rangefinder is not OK, holding depth");
         return;
     }
 
@@ -44,7 +44,7 @@ void Sub::SurfaceTracking::update_surface_offset()
         } else {
             // rangefinder is unhealthy
             if (!reset_target) {
-                sub.gcs().send_text(MAV_SEVERITY_WARNING, "rangefinder is not OK, surface tracking is paused");
+                sub.gcs().send_text(MAV_SEVERITY_WARNING, "rangefinder is not OK, holding depth");
                 reset_target = true;
             }
         }

@@ -28,6 +28,12 @@ bool Sub::set_mode(control_mode_t mode, ModeReason reason)
         success = althold_init();
         break;
 
+#if RANGEFINDER_ENABLED == ENABLED
+    case RNG_HOLD:
+        success = rnghold_init();
+        break;
+#endif
+
     case AUTO:
         success = auto_init();
         break;
@@ -120,6 +126,12 @@ void Sub::update_flight_mode()
         althold_run();
         break;
 
+#if RANGEFINDER_ENABLED == ENABLED
+    case RNG_HOLD:
+        rnghold_run();
+        break;
+#endif
+
     case AUTO:
         auto_run();
         break;
@@ -206,6 +218,9 @@ bool Sub::mode_allows_arming(control_mode_t mode, bool arming_from_gcs)
 {
     return (mode_has_manual_throttle(mode)
         || mode == ALT_HOLD
+#if RANGEFINDER_ENABLED == ENABLED
+        || mode == RNG_HOLD
+#endif
         || mode == POSHOLD
         || (arming_from_gcs&& mode == GUIDED)
     );
