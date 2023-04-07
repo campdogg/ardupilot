@@ -58,10 +58,6 @@
 # define RANGEFINDER_GAIN_DEFAULT 0.8f     // gain for controlling how quickly rangefinder range adjusts target altitude (lower means slower reaction)
 #endif
 
-#ifndef SURFTRAK_MODE_DEFAULT
-# define SURFTRAK_MODE_DEFAULT 0           // 0:Disabled,1:Enabled
-#endif
-
 #ifndef THR_SURFACE_TRACKING_VELZ_MAX
 # define THR_SURFACE_TRACKING_VELZ_MAX 150 // max vertical speed change while surface tracking with rangefinder
 #endif

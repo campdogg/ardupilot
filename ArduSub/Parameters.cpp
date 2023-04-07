@@ -79,13 +79,6 @@ const AP_Param::Info Sub::var_info[] = {
     // @Increment: 0.01
     // @User: Standard
     GSCALAR(rangefinder_gain,     "RNGFND_GAIN",           RANGEFINDER_GAIN_DEFAULT),
-
-    // @Param: SURFTRAK_MODE
-    // @DisplayName: Surface Tracking Enable
-    // @Description: Maintain a constant rangefinder reading
-    // @Values: 0:Disabled,1:Enabled
-    // @User: Standard
-    GSCALAR(surftrak_mode, "SURFTRAK_MODE", SURFTRAK_MODE_DEFAULT),
 #endif
 
     // @Param: FS_GCS_ENABLE

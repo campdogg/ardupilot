@@ -1,13 +1,16 @@
 #include "Sub.h"
 
+#if RANGEFINDER_ENABLED == ENABLED
 
 /*
- * control_althold.pde - init and run calls for althold, flight mode
+ * control_rnghold.pde - init and run calls for rnghold, flight mode
  */
 
-// althold_init - initialise althold controller
-bool Sub::althold_init()
+// rnghold_init - initialise rnghold controller
+bool Sub::rnghold_init()
 {
+    printf("rnghold_init\n");
+
     if(!control_check_barometer()) {
         return false;
     }
@@ -22,12 +25,15 @@ bool Sub::althold_init()
 
     last_pilot_heading = ahrs.yaw_sensor;
 
+    // enable surface tracking
+    surface_tracking.enable(true);
+
     return true;
 }
 
-// althold_run - runs the althold controller
+// rnghold_run - runs the rnghold controller
 // should be called at 100hz or more
-void Sub::althold_run()
+void Sub::rnghold_run()
 {
     uint32_t tnow = AP_HAL::millis();
 
@@ -94,15 +100,16 @@ void Sub::althold_run()
         }
     }
 
-    control_depth();
+    control_range();
 
     motors.set_forward(channel_forward->norm_input());
     motors.set_lateral(channel_lateral->norm_input());
 }
 
-void Sub::control_depth() {
+void Sub::control_range() {
     float target_climb_rate_cm_s = get_pilot_desired_climb_rate(channel_throttle->get_control_in());
     target_climb_rate_cm_s = constrain_float(target_climb_rate_cm_s, -get_pilot_speed_dn(), g.pilot_speed_up);
+    bool track_seafloor = false;
 
     // desired_climb_rate returns 0 when within the deadzone.
     //we allow full control to the pilot, but as soon as there's no input, we handle being at surface/bottom
@@ -111,9 +118,21 @@ void Sub::control_depth() {
             pos_control.set_pos_target_z_cm(MIN(pos_control.get_pos_target_z_cm(), g.surface_depth - 5.0f)); // set target to 5 cm below surface level
         } else if (ap.at_bottom) {
             pos_control.set_pos_target_z_cm(MAX(inertial_nav.get_position_z_up_cm() + 10.0f, pos_control.get_pos_target_z_cm())); // set target to 10 cm above bottom
+        } else {
+            track_seafloor = true;
         }
+    }
+
+    if (track_seafloor) {
+        // update the vertical offset based on the rangefinder measurement
+        surface_tracking.update_surface_offset();
+    } else {
+        // stop tracking
+        surface_tracking.reset();
     }
 
     pos_control.set_pos_target_z_from_climb_rate_cm(target_climb_rate_cm_s);
     pos_control.update_z_controller();
 }
+
+#endif
