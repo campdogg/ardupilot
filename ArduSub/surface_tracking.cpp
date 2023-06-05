@@ -38,7 +38,9 @@ void Sub::SurfaceTracking::update_surface_offset()
 
             // update position controller target offset
             const float pos_offset_target_z_cm = sub.pos_control.get_pos_offset_z_cm() +
-                    sub.g.rangefinder_gain * (target_rangefinder_cm - sub.rangefinder_state.alt_cm_filt.get());
+                    sub.surface_tracking.pid_rangefinder.update_error(
+                            target_rangefinder_cm - sub.rangefinder_state.alt_cm_filt.get(), 0.01);
+
             sub.pos_control.set_pos_offset_target_z_cm(pos_offset_target_z_cm);
             last_update_ms = now_ms;
         } else {

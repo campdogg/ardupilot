@@ -62,6 +62,7 @@
 #include <AP_JSButton/AP_JSButton.h>   // Joystick/gamepad button function assignment
 #include <AP_LeakDetector/AP_LeakDetector.h> // Leak detector
 #include <AP_Proximity/AP_Proximity.h>
+#include <AC_PID/AC_PID.h>
 
 // Local modules
 #include "defines.h"
@@ -158,6 +159,10 @@ private:
 
         // get target rangefinder
         float get_target_rangefinder_cm() const { return target_rangefinder_cm; }
+
+        // rangefinder PID, must be public so that AP_Param can see it
+        AC_PID pid_rangefinder{RNGFND_P_DEFAULT, RNGFND_I_DEFAULT, RNGFND_D_DEFAULT,
+                               0.0, 0.0, 5.0, 5.0, 5.0};
 
     private:
         bool enabled;                       // true if pilot enabled surface tracking
