@@ -70,5 +70,6 @@ void Sub::read_rangefinder()
 // return true if rangefinder_alt can be used
 bool Sub::rangefinder_alt_ok() const
 {
-    return (rangefinder_state.enabled && rangefinder_state.alt_healthy);
+    uint32_t now = AP_HAL::millis();
+    return (rangefinder_state.enabled && rangefinder_state.alt_healthy && now - rangefinder_state.last_healthy_ms < RANGEFINDER_TIMEOUT_MS);
 }

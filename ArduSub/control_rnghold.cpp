@@ -112,7 +112,7 @@ void Sub::control_range() {
     bool track_seafloor = false;
 
     // desired_climb_rate returns 0 when within the deadzone.
-    //we allow full control to the pilot, but as soon as there's no input, we handle being at surface/bottom
+    // we allow full control to the pilot, but as soon as there's no input, we handle being at surface/bottom
     if (fabsf(target_climb_rate_cm_s) < 0.05f)  {
         if (ap.at_surface) {
             pos_control.set_pos_target_z_cm(MIN(pos_control.get_pos_target_z_cm(), g.surface_depth - 5.0f)); // set target to 5 cm below surface level

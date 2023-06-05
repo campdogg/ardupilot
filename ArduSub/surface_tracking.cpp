@@ -16,19 +16,20 @@ void Sub::SurfaceTracking::enable(bool _enabled)
 
 void Sub::SurfaceTracking::reset()
 {
+    if (!reset_target) {
+        printf("reset target (pilot override? surface? bottom?)\n");
+    }
+
     reset_target = true;
 }
 
 void Sub::SurfaceTracking::update_surface_offset()
 {
     if (enabled) {
-        // check for first reading or timeout
-        const uint32_t now_ms = AP_HAL::millis();
-        const bool timeout = (now_ms - last_update_ms) > SURFACE_TRACKING_TIMEOUT_MS;
-
+        // if the rangefinder is unhealthy, do nothing
         if (sub.rangefinder_alt_ok()) {
-            // handle first reading, recover from a timeout, or reengage tracking after a controller reset
-            if (timeout || reset_target) {
+            // handle first reading or controller reset
+            if (reset_target) {
                 target_rangefinder_cm = sub.rangefinder_state.alt_cm_filt.get();
                 sub.pos_control.set_pos_offset_z_cm(0);
                 sub.pos_control.set_pos_offset_target_z_cm(0);
@@ -42,13 +43,6 @@ void Sub::SurfaceTracking::update_surface_offset()
                             target_rangefinder_cm - sub.rangefinder_state.alt_cm_filt.get(), 0.01);
 
             sub.pos_control.set_pos_offset_target_z_cm(pos_offset_target_z_cm);
-            last_update_ms = now_ms;
-        } else {
-            // rangefinder is unhealthy
-            if (!reset_target) {
-                sub.gcs().send_text(MAV_SEVERITY_WARNING, "rangefinder is not OK, holding depth");
-                reset_target = true;
-            }
         }
     } else {
         sub.pos_control.set_pos_offset_z_cm(0);

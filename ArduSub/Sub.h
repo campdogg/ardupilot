@@ -165,10 +165,9 @@ private:
                                0.0, 0.0, 5.0, 5.0, 5.0};
 
     private:
-        bool enabled;                       // true if pilot enabled surface tracking
-        bool reset_target;                  // true if target should be reset
-        float target_rangefinder_cm;        // target distance to seafloor
-        uint32_t last_update_ms;            // system time of last update to target_alt_cm
+        bool enabled = false;                 // true if pilot enabled surface tracking
+        bool reset_target = false;            // true if target should be reset
+        float target_rangefinder_cm = 0;      // target distance to seafloor
     } surface_tracking;
 #endif
 
