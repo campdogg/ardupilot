@@ -4,14 +4,13 @@
 
 void Sub::SurfaceTracking::enable(bool _enabled)
 {
-    // don't enable surface tracking if rangefinder is missing or unhealthy
-    if (_enabled && !sub.rangefinder_alt_ok()) {
-        sub.gcs().send_text(MAV_SEVERITY_WARNING, "rangefinder is not OK, holding depth");
-        return;
-    }
-
     enabled = _enabled;
-    reset_target = true;
+    reset();
+
+    // let pilot know that we're waiting for a rangefinder reading
+    if (enabled && !sub.rangefinder_alt_ok()) {
+        sub.gcs().send_text(MAV_SEVERITY_WARNING, "holding depth, waiting for a rangefinder reading");
+    }
 }
 
 void Sub::SurfaceTracking::reset()
