@@ -3,14 +3,31 @@
 #if RANGEFINDER_ENABLED == ENABLED
 
 /*
- * control_rnghold.pde - init and run calls for rnghold, flight mode
+ * RNG_HOLD (rangefinder hold) -- a variation on ALT_HOLD (depth hold)
+ *
+ * The real work for ALT_HOLD and RNG_HOLD is handled by AC_PosControl, which provides 2 inputs for depth:
+ * -- target depth (sub.pos_control._pos_target.z). This is the desired depth, plus an offset.
+ * -- target offset (sub.pos_control._pos_offset_target_z). This is the desired offset.
+ *
+ * ALT_HOLD and RNG_HOLD set the target depth in these situations:
+ * -- During initialization, we call pos_control.init_z_controller(). This sets target depth to the current depth.
+ * -- If the sub hits the surface or bottom we call pos_control.set_pos_target_z_cm().
+ * -- If the pilot takes control we call pos_control.set_pos_target_z_from_climb_rate_cm().
+ *
+ * At the end of the control loop ALT_HOLD and RNG_HOLD call pos_control.update_z_controller() to pass the buck.
+ *
+ * ALT_HOLD does not use the target offset.
+ *
+ * RNG_HOLD sets the target offset to implement surface tracking. This is handled by Sub::SurfaceTracking. We call
+ * SurfaceTracking in these situations:
+ * -- During initialization, we call surface_tracking.enable().
+ * -- During normal operation, we call surface_tracking.update_surface_offset().
+ * -- If the sub hits the surface or bottom, or the pilot takes control, we call surface_tracking.reset().
  */
 
 // rnghold_init - initialise rnghold controller
 bool Sub::rnghold_init()
 {
-    printf("rnghold_init\n");
-
     if(!control_check_barometer()) {
         return false;
     }
@@ -109,29 +126,30 @@ void Sub::rnghold_run()
 void Sub::control_range() {
     float target_climb_rate_cm_s = get_pilot_desired_climb_rate(channel_throttle->get_control_in());
     target_climb_rate_cm_s = constrain_float(target_climb_rate_cm_s, -get_pilot_speed_dn(), g.pilot_speed_up);
-    bool track_seafloor = false;
 
-    // desired_climb_rate returns 0 when within the deadzone.
-    // we allow full control to the pilot, but as soon as there's no input, we handle being at surface/bottom
+    // desired_climb_rate returns 0 when within the deadzone
     if (fabsf(target_climb_rate_cm_s) < 0.05f)  {
         if (ap.at_surface) {
-            pos_control.set_pos_target_z_cm(MIN(pos_control.get_pos_target_z_cm(), g.surface_depth - 5.0f)); // set target to 5 cm below surface level
+            // set target depth to 5 cm below SURFACE_DEPTH
+            pos_control.set_pos_target_z_cm(MIN(pos_control.get_pos_target_z_cm(), g.surface_depth - 5.0f));
+            surface_tracking.reset();
         } else if (ap.at_bottom) {
-            pos_control.set_pos_target_z_cm(MAX(inertial_nav.get_position_z_up_cm() + 10.0f, pos_control.get_pos_target_z_cm())); // set target to 10 cm above bottom
+            // set target depth to 10 cm above bottom
+            pos_control.set_pos_target_z_cm(MAX(inertial_nav.get_position_z_up_cm() + 10.0f, pos_control.get_pos_target_z_cm()));
+            surface_tracking.reset();
         } else {
-            track_seafloor = true;
+            // normal operation
+            surface_tracking.update_surface_offset();
         }
-    }
-
-    if (track_seafloor) {
-        // update the vertical offset based on the rangefinder measurement
-        surface_tracking.update_surface_offset();
     } else {
-        // stop tracking
+        // pilot is in control
         surface_tracking.reset();
     }
 
+    // set the target z from the climb rate and the z offset, and adjust the z vel and accel targets
     pos_control.set_pos_target_z_from_climb_rate_cm(target_climb_rate_cm_s);
+
+    // run the z vel and accel PID controllers
     pos_control.update_z_controller();
 }
 

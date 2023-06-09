@@ -151,14 +151,17 @@ private:
         // pilot can enable or disable tracking
         void enable(bool _enabled);
 
-        // mode controller can reset target_rangefinder_cm
+        // reset controller, target_rangefinder_cm = next healthy rangefinder reading
         void reset();
-
-        // update_surface_offset - vertical offset of the position controller tracks the rangefinder
-        void update_surface_offset();
 
         // get target rangefinder
         float get_target_rangefinder_cm() const { return target_rangefinder_cm; }
+
+        // set target rangefinder
+        void set_target_rangefinder_cm(float new_target_cm);
+
+        // track seafloor, call from main control loop
+        void update_surface_offset();
 
         // rangefinder PID, must be public so that AP_Param can see it
         AC_PID pid_rangefinder{RNGFND_P_DEFAULT, RNGFND_I_DEFAULT, RNGFND_D_DEFAULT,
